@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>Moorsleedse Karateclub - QR Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f6f7;
+      color: #173e4b;
+      text-align: center;
+      padding: 20px;
+    }
+    #reader {
+      max-width: 420px;
+      margin: 20px auto;
+    }
+    #resultaat {
+      padding: 18px;
+      background: white;
+      border-radius: 10px;
+      margin-top: 15px;
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+    button {
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      background: #173e4b;
+      color: white;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Moorsleedse Karateclub</h2>
+  <p>QR-aanwezigheidsregistratie</p>
+  <div id="reader"></div>
+  <div id="resultaat">Scanner wordt voorbereid...</div>
+  <button onclick="startScanner()">Start scanner</button>
+
+  <script>
+    let scanner;
+    let laatsteCode = "";
+    let laatsteScan = 0;
+
+    async function startScanner() {
+      const resultaat = document.getElementById("resultaat");
+
+      if (scanner) return;
+
+      if (typeof Html5Qrcode === "undefined") {
+        resultaat.textContent = "Scannerbibliotheek kon niet laden.";
+        return;
+      }
+
+      scanner = new Html5Qrcode("reader");
+
+      try {
+        await scanner.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: 250 },
+          (code) => {
+            const nu = Date.now();
+
+            if (code === laatsteCode && nu - laatsteScan < 5000) {
+              return;
+            }
+
+            laatsteCode = code;
+            laatsteScan = nu;
+
+            resultaat.textContent =
+              "QR-code gelezen! Klaar voor het volgende lid.";
+
+            // De koppeling met Google Sheets volgt later.
+          }
+        );
+        resultaat.textContent = "Camera actief - klaar om te scannen";
+      } catch (fout) {
+        scanner = null;
+        resultaat.textContent = "Camerafout: " + fout;
+      }
+    }
+  </script>
+</body>
+</html>
